@@ -8,6 +8,8 @@ const utils = require( TEST_LOCATION ); // jest global
 exports.example = () => 'hello world';
 
 
+
+
 /**
  * @param {[]} objectArray 给定的对象数组 
  * const arraydata = [{ key: 'a', value: 'c', name: 'f' }, { key: 'b', value: 'd', name: 'd' }]
@@ -64,8 +66,26 @@ exports.sumDeep = (data) => {
 };
 
 
-exports.applyStatusColor = () => {};
-
+/**
+ * @param {[{}]} dataSource 数据源
+ * @param {[]} statusArray 状态集合
+ */
+exports.applyStatusColor = (dataSource, statusArray) => {
+    try {
+        return statusArray.reduce((ret, item) => {
+            const findKey = Object.keys(dataSource).find(key => dataSource[key].includes(item['status']));
+            if (findKey) {
+                ret.push({
+                  status: item['status'],
+                  color: findKey,
+                })
+            }
+           return ret;
+        }, []);
+    } catch (err) {
+        console.log(err);
+    }
+}
 
 
 /**
@@ -81,5 +101,26 @@ exports.createGreeting = greeting => person => `${greeting} ${person}`;
 exports.setDefaults = ((obj = {}) => Object.assign({}, { subscribed: true }, obj));
 
 
+/**
+ * 根据用户名查找用户所在的公司
+ * @param userName
+ * @param services
+ * @return { company, status, user }
+ */
+exports.fetchUserByNameAndUsersCompany = async (userName, services) => {
+    const status = await services.fetchStatus();
+    const usersData = await services.fetchUsers();
+    const user = usersData.find(user => user.name === userName);
+    const company = await new Promise(resolve => {
+        if (user && user.companyId) {
+            resolve(user.companyId);
+        }
+    }).then(comId => services.fetchCompanyById(comId));
+    
+    return {
+       company,
+       status,
+       user,
+    }
+}
 
-exports.fetchUserByNameAndUsersCompany = () => {};
